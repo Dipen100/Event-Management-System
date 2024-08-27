@@ -15,9 +15,17 @@ class EventCategoryViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [
-        IsAuthenticated ,IsAdminOrEventPlannerOrReadOnly
-    ]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'location', 'description']
     ordering_fields = ['date', 'title']
+    permission_classes = [
+        IsAuthenticated ,IsAdminOrEventPlannerOrReadOnly
+    ]
+    
+class VendorViewSet(viewsets.ModelViewSet):
+    queryset = Vendor.objects.all()
+    serializer_class = VendorSerializer
+    ordering_fields = ('id',)
+    permission_classes = [
+        IsAuthenticated, IsAdminOrVendorOrReadOnly
+    ]

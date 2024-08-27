@@ -24,5 +24,15 @@ class IsAdminOrEventPlannerOrReadOnly(permissions.BasePermission):
 
         if request.user.role in ['ADMIN', 'EVENT_PLANNER']:
             return True
-        
-        return False
+        else:
+            return False
+
+class IsAdminOrVendorOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if request.user.role in ['ADMIN', 'VENDOR']:
+            return True
+        else:
+            return False

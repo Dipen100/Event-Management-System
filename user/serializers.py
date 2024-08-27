@@ -23,3 +23,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'role']
         read_only_fields = ['role']
+

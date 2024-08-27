@@ -6,5 +6,6 @@ router = routers.SimpleRouter()
 
 router.register('events', EventViewSet)
 router.register('categories', EventCategoryViewSet)
+router.register('vendor', VendorViewSet, basename='vendor')
 
 urlpatterns = router.urls
