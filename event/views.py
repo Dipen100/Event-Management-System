@@ -29,3 +29,12 @@ class VendorViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated, IsAdminOrVendorOrReadOnly
     ]
+
+class CateringViewSet(viewsets.ModelViewSet):
+    queryset = Catering.objects.all()
+    serializer_class = CateringSerializer
+    ordering_fields = ('id',)
+
+class EventLogisticViewSet(viewsets.ModelViewSet):
+    queryset = EventLogistics.objects.all()
+    serializer_class = EventLogisticSerializer

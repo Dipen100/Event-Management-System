@@ -21,7 +21,7 @@ class VendorSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Vendor
-        fields = ['id', 'name', 'email', 'phone', 'event', 'event_id']
+        fields = ['id', 'name', 'email','address', 'phone', 'event', 'event_id']
 
     def create(self, validated_data):
         event = validated_data.pop('event')
@@ -29,3 +29,39 @@ class VendorSerializer(serializers.ModelSerializer):
         vendor = Vendor.objects.create(event=event, **validated_data)
 
         return vendor
+
+class CateringSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Catering
+        fields = [
+            'id', 'name', 'address', 'phone'
+        ]
+class EquipmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Equipments
+        fields = [
+            'id', 'name'
+        ]
+        
+class EventLogisticSerializer(serializers.ModelSerializer):
+    event_id = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), source='event', write_only=True)
+    
+    catering_id = serializers.PrimaryKeyRelatedField(queryset=Catering.objects.all(), source='catering', write_only=True)
+    
+    equipment_id = serializers.PrimaryKeyRelatedField(queryset=Equipments.objects.all(), source='equipment', write_only=True)
+    
+    event = EventSerializer(read_only=True)
+    catering = CateringSerializer(read_only=True)
+    equipment = EquipmentSerializer(read_only=True)
+    
+    class Meta:
+        model = EventLogistics
+        fields = '__all__'
+        
+    def create(self, validated_data):
+        event = validated_data.pop('event')
+        catering = validated_data.pop('catering')
+        equipment = validated_data.pop('equipment')
+        event_logistics = EventLogistics.objects.create(event=event, catering=catering,equipment=equipment, **validated_data)
+        return event_logistics
+

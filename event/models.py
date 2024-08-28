@@ -35,9 +35,46 @@ class Vendor(models.Model):
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
 
     name = models.CharField(max_length=30)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
+    address = models.CharField(max_length=30)
     phone = models.IntegerField()
     
     def __str__(self):
         return self.name
+
+class Catering(models.Model):
+    name = models.CharField(max_length=30)
+    address = models.CharField(max_length=50)
+    phone = models.PositiveIntegerField()
+    
+    def __str__(self):
+        return self.name
+    
+class Equipments(models.Model):
+    name = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
+
+class EventLogistics(models.Model):
+    BUS = 'B'
+    CAR = 'C'
+    VAN = 'V'
+    SCORPIO = 'S'
+    
+    TRANSPORTATION_CHOICES = [
+        ('BUS', BUS),
+        ('CAR', CAR),
+        ('VAN', VAN),
+        ('SCORPIO', SCORPIO),
+    ]
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    catering = models.ForeignKey(Catering, on_delete=models.CASCADE)
+    equipments = models.ManyToManyField(Equipments)
+    transportation = models.CharField(max_length=9, choices=TRANSPORTATION_CHOICES)
+    
+    def __str__(self):
+        return self.event.title
+    
+    
     
