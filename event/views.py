@@ -38,3 +38,7 @@ class CateringViewSet(viewsets.ModelViewSet):
 class EventLogisticViewSet(viewsets.ModelViewSet):
     queryset = EventLogistics.objects.all()
     serializer_class = EventLogisticSerializer
+    
+class EquipmentsViewSet(viewsets.ModelViewSet):
+    queryset = Equipments.objects.all()
+    serializer_class = EquipmentSerializer
