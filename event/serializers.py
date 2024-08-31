@@ -48,26 +48,24 @@ class EventLogisticSerializer(serializers.ModelSerializer):
     
     catering_id = serializers.PrimaryKeyRelatedField(queryset=Catering.objects.all(), source='catering', write_only=True)
     
-    # equipment_id = serializers.PrimaryKeyRelatedField(queryset=Equipments.objects.all(), source='equipment', write_only=True)
+    equipment_id = serializers.PrimaryKeyRelatedField(queryset=Equipments.objects.all(), source='equipments', many=True, write_only=True)
     
     event = EventSerializer(read_only=True)
     catering = CateringSerializer(read_only=True)
-    equipment = EquipmentSerializer(many=True, read_only=True)
+    equipments = EquipmentSerializer(many=True, read_only=True)
     
     class Meta:
         model = EventLogistics
         fields = '__all__'
         
     def create(self, validated_data):
-        # raise Exception(validated_data)
         event = validated_data.pop('event')
         catering = validated_data.pop('catering')
-        equipment = validated_data.pop('equipments')
+        equipments = validated_data.pop('equipments')
         
         event_logistics = EventLogistics.objects.create(event=event, catering=catering, **validated_data)
         
-        # raise Exception(event_logistics)
-        event_logistics.equipments.set(equipment)
+        event_logistics.equipments.set(equipments)
         
         return event_logistics
 
