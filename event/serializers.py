@@ -69,3 +69,59 @@ class EventLogisticSerializer(serializers.ModelSerializer):
         
         return event_logistics
 
+class AttendeeSerializer(serializers.ModelSerializer):
+    event_id = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), source='event', write_only=True)
+    
+    event = EventSerializer(read_only=True)
+
+    class Meta:
+        model = Attendee
+        fields = [
+            'id', 'name', 'address', 'phone', 'event_id', 'event'
+        ]
+    
+    def create(self, validated_data):
+        event = validated_data.pop('event')
+        attendee = Attendee.objects.create(event=event, **validated_data)       
+        return attendee
+        
+class CommunicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Communication
+        fields = ['id', 'attendee', 'sent_at', 'message']
+
+class TicketSerializer(serializers.ModelSerializer):
+    attendee_id = serializers.PrimaryKeyRelatedField(queryset=Attendee.objects.all(), source='attendee', write_only=True)
+        
+    attendee = AttendeeSerializer(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = "__all__"
+
+class ReservationSerializer(serializers.ModelSerializer):
+    ticket_id = serializers.PrimaryKeyRelatedField(queryset=Ticket.objects.all(), source='ticket', write_only=True)
+        
+    ticket = TicketSerializer(read_only=True)
+    
+    class Meta:
+        model = Reservation
+        fields = '__all__'
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    ticket_id = serializers.PrimaryKeyRelatedField(queryset=Ticket.objects.all(), source='ticket', write_only=True)
+        
+    ticket = TicketSerializer(read_only=True)
+    
+    class Meta:
+        model = Invoice
+        fields = ['id','ticket_id', 'ticket', 'is_paid', 'issued_at']
+
+class ReceiptSerializer(serializers.ModelSerializer):
+    invoice_id = serializers.PrimaryKeyRelatedField(queryset=Invoice.objects.all(), source='invoice', write_only=True)
+    
+    invoice = InvoiceSerializer(read_only=True)
+    
+    class Meta:
+        model = Receipt
+        fields = "__all__"
