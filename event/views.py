@@ -26,6 +26,16 @@ class EventViewSet(viewsets.ModelViewSet):
         IsAuthenticated ,IsAdminOrEventPlannerOrReadOnly
     ]
     
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'PUT':
+            return EventUpdateSerializer
+        
+        elif method == 'POST':
+            return EventCreateSerializer
+        
+        return EventSerializer
+    
 class VendorViewSet(viewsets.ModelViewSet):
     queryset = Vendor.objects.all()
     serializer_class = VendorSerializer
@@ -37,17 +47,28 @@ class VendorViewSet(viewsets.ModelViewSet):
 class CateringViewSet(viewsets.ModelViewSet):
     queryset = Catering.objects.all()
     serializer_class = CateringSerializer
-    ordering_fields = ('id',)    
+    ordering_fields = ('id',)
+    
     permission_classes = [
         IsAuthenticated, IsAdminOrEventPlannerOrReadOnly
     ]
 
 class EventLogisticViewSet(viewsets.ModelViewSet):
     queryset = EventLogistics.objects.all()
-    serializer_class = EventLogisticSerializer
+    serializer_class = EventLogisticViewSerializer
     permission_classes = [
         IsAuthenticated, IsAdminOrEventPlannerOrReadOnly
     ]
+    
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'PUT':
+            return UpdateEventLogisticSerializer
+        
+        if method == 'POST':
+            return CreateEventLogisticSerializer
+        
+        return EventLogisticViewSerializer
     
 class EquipmentsViewSet(viewsets.ModelViewSet):
     queryset = Equipments.objects.all()
@@ -58,10 +79,17 @@ class EquipmentsViewSet(viewsets.ModelViewSet):
 
 class AttendeeViewSet(viewsets.ModelViewSet):
     queryset = Attendee.objects.all()
-    serializer_class = AttendeeSerializer
+    serializer_class = AttendeeViewSerializer
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
+    
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'POST':
+            return AttendeeCreateSerializer
+        
+        return AttendeeViewSerializer
 
 class CommunicationViewSet(viewsets.ModelViewSet):
     queryset = Communication.objects.all()
@@ -69,20 +97,41 @@ class CommunicationViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
-
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
-    serializer_class = TicketSerializer
+    serializer_class = TicketViewSerializer
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return TicketPurchaseSerializer
+        
+        return TicketViewSerializer
+    
+    http_method_names={
+        'get', 'post', 'patch',
+    }
+    
 
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
+    serializer_class = ReservedEventViewSerializer
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
+    
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'POST':
+            return ReserveEventSerializer
+        
+        return ReservedEventViewSerializer
+    
+    http_method_names={
+        'get', 'post', 'patch',
+    }
     
 class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.all()
@@ -90,42 +139,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
-    
-class ReceiptViewSet(viewsets.ModelViewSet):
-    queryset = Receipt.objects.all()
-    serializer_class = ReceiptSerializer
-    permission_classes = [
-        IsAuthenticated, IsAdminOrClientOrReadOnly
-    ]
 
-# class RegisterAttendeeView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         event_id = request.data.get('event')
-#         user_id = request.data.get('user')
-        
-#         # Validate if event exists
-#         if not Event.objects.filter(id=event_id).exists():
-#             return Response({'error': 'Event does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-        
-#         # Create or update attendee registration
-#         attendee, created = Attendee.objects.get_or_create(event_id=event_id, user_id=user_id, defaults={'status': 'Registered'})
-        
-#         if not created:
-#             return Response({'error': 'You are already registered for this event'}, status=status.HTTP_400_BAD_REQUEST)
-        
-#         serializer = AttendeeSerializer(attendee)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-# class CommunicationView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         attendee_id = request.data.get('attendee')
-#         message = request.data.get('message')
-        
-#         # Validate if attendee exists
-#         if not Attendee.objects.filter(id=attendee_id).exists():
-#             return Response({'error': 'Attendee does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-        
-#         # Create communication record
-#         communication = Communication.objects.create(attendee_id=attendee_id, message=message)
-#         serializer = CommunicationSerializer(communication)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+class ReviewViewset(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer

@@ -16,10 +16,8 @@ router.register('communications', CommunicationViewSet)
 router.register('ticketing', TicketViewSet)
 router.register('reservations', ReservationViewSet)
 router.register('invoices', InvoiceViewSet)
-router.register('receipt', ReceiptViewSet, basename='receipt')
+router.register('review', ReviewViewset, basename='review')
 
 urlpatterns = [
-    # path('', include(router.urls)),
-    # path('register_event/', RegisterAttendeeView.as_view(), name='register'),
-    # path('communicate/', CommunicationView.as_view(), name='communicate'),
+    
 ]+router.urls
