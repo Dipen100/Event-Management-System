@@ -25,9 +25,9 @@ class EventSerializer(serializers.ModelSerializer):
             'date',
             'location',
             'description',
+            'price',
             'category_id',
             'category',
-            'price',
         ]
         
 class EventUpdateSerializer(serializers.ModelSerializer):
@@ -39,7 +39,6 @@ class EventUpdateSerializer(serializers.ModelSerializer):
             'date',
             'location',
             'description',
-            'price',
         ]
         
 class EventCreateSerializer(serializers.ModelSerializer):
@@ -52,7 +51,7 @@ class EventCreateSerializer(serializers.ModelSerializer):
             'date',
             'location',
             'description',
-            'price',
+            'price'
         ]
 
 class VendorSerializer(serializers.ModelSerializer):
@@ -202,6 +201,7 @@ class AttendeeViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendee
         fields = [
+            'client_id',
             'id',
             'name',
             'address',
@@ -223,6 +223,31 @@ class AttendeeCreateSerializer(serializers.ModelSerializer):
             'registered_at',
             'message'
         ]
+
+class EventAttendeeCreateSerializer(serializers.Serializer):
+    client = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    event_id = serializers.IntegerField()
+    attendees = AttendeeCreateSerializer(many=True)  
+    
+    def create(self, validated_data):
+        client = self.context['request'].user
+        event_id = validated_data.get('event_id')
+        attendees_data = validated_data.get('attendees')
+        # raise Exception(client)
+
+        event = Event.objects.get(id=event_id)
+        attendee_list = []
+
+        for attendee_data in attendees_data:
+            attendee_data.pop('event', None)
+            attendee = Attendee.objects.create(
+                event=event,
+                client=client,
+                **attendee_data
+            )
+            attendee_list.append(attendee)
+
+        return attendee_list
 
 class CommunicationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -291,9 +316,10 @@ class TicketViewSerializer(serializers.ModelSerializer):
             'attendee_id',
             'attendee',
             'ticket_type',
+            'ticket_number',
+            'ticket_price',
             'total_price',
-            'payment_mode',
-            'purchased_at',
+            'issued_at',
         ]
 
 class TicketPurchaseSerializer(serializers.ModelSerializer):
@@ -318,17 +344,15 @@ class TicketPurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = [
-            'id',
             'reservation_id',
-            'event_id',
             'attendee_id',
+            'event_id',
             'ticket_type',
-            # 'vip_price_only',
-            'total_price',
-            'payment_mode',
-            'purchased_at',
+            'ticket_number',
+            'ticket_price',
+            'issued_at'
         ]
-
+     
     def validate(self, attrs):
         reservation_id = attrs.get('reservation_id', None)
         event = attrs.get('event', None)
@@ -365,42 +389,28 @@ class TicketPurchaseSerializer(serializers.ModelSerializer):
         return Ticket.objects.create(**validated_data)
         
 
-        
-# class TicketPurchaseSerializer(serializers.ModelSerializer):
-#     event_id = serializers.PrimaryKeyRelatedField(
-#         queryset=Event.objects.all(),
-#         source='event',
-#         write_only=True
-#     )
-    
-#     attendee_id = serializers.PrimaryKeyRelatedField(
-#         queryset=Attendee.objects.all(),
-#         source='attendee',
-#         write_only=True
-#     )
-    
-#     class Meta:
-#         model = Ticket
-#         fields = [
-#             'id',
-#             'event_id',
-#             'attendee_id',
-#             'ticket_type',
-#             'vip_price_only',
-#             'total_price',
-#             'payment_mode',
-#             'purchased_at',
-#         ]
-
 class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = [
             'id',
+            # 'attendee',
             'ticket',
             'amount',
-            'issued_at',
-            'is_paid'
+            'is_paid',
+            'created_at',
+        ]
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = [
+            'id',
+            'invoice',
+            'payment_mode',
+            'amount_paid',
+            'transaction_id',
+            'payment_date'
         ]
 
 class ReviewSerializer(serializers.ModelSerializer):

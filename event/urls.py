@@ -16,7 +16,8 @@ router.register('communications', CommunicationViewSet)
 router.register('ticketing', TicketViewSet)
 router.register('reservations', ReservationViewSet)
 router.register('invoices', InvoiceViewSet)
-router.register('review', ReviewViewset, basename='review')
+router.register('payment', PaymentViewSet)
+# router.register('review', ReviewViewset, basename='review')
 
 urlpatterns = [
     

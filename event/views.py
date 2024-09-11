@@ -4,6 +4,8 @@ from rest_framework import viewsets, filters
 from rest_framework import status
 from .models import *
 from .serializers import *
+from django.utils.timezone import now 
+import uuid
 
 from rest_framework.permissions import IsAuthenticated
 from user.permissions import *
@@ -29,6 +31,9 @@ class EventViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         method = self.request.method
         if method == 'PUT':
+            return EventUpdateSerializer
+        
+        if method == 'PATCH':
             return EventUpdateSerializer
         
         elif method == 'POST':
@@ -76,45 +81,7 @@ class EquipmentsViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated, IsAdminOrEventPlannerOrReadOnly
     ]
-
-class AttendeeViewSet(viewsets.ModelViewSet):
-    queryset = Attendee.objects.all()
-    serializer_class = AttendeeViewSerializer
-    permission_classes = [
-        IsAuthenticated, IsAdminOrClientOrReadOnly
-    ]
     
-    def get_serializer_class(self):
-        method = self.request.method
-        if method == 'POST':
-            return AttendeeCreateSerializer
-        
-        return AttendeeViewSerializer
-
-class CommunicationViewSet(viewsets.ModelViewSet):
-    queryset = Communication.objects.all()
-    serializer_class = CommunicationSerializer
-    permission_classes = [
-        IsAuthenticated, IsAdminOrClientOrReadOnly
-    ]
-class TicketViewSet(viewsets.ModelViewSet):
-    queryset = Ticket.objects.all()
-    serializer_class = TicketViewSerializer
-    permission_classes = [
-        IsAuthenticated, IsAdminOrClientOrReadOnly
-    ]
-    
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return TicketPurchaseSerializer
-        
-        return TicketViewSerializer
-    
-    http_method_names={
-        'get', 'post', 'patch',
-    }
-    
-
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservedEventViewSerializer
@@ -133,13 +100,81 @@ class ReservationViewSet(viewsets.ModelViewSet):
         'get', 'post', 'patch',
     }
     
-class InvoiceViewSet(viewsets.ModelViewSet):
-    queryset = Invoice.objects.all()
-    serializer_class = InvoiceSerializer
+class CommunicationViewSet(viewsets.ModelViewSet):
+    queryset = Communication.objects.all()
+    serializer_class = CommunicationSerializer
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
 
-class ReviewViewset(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+class TicketViewSet(viewsets.ModelViewSet):
+    queryset = Ticket.objects.all()
+    # serializer_class = TicketViewSerializer
+    permission_classes = [
+        IsAuthenticated, IsAdminOrClientOrReadOnly
+    ]
+    
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'POST':
+            return TicketPurchaseSerializer
+        
+        return TicketViewSerializer
+    
+    # http_method_names={
+    #     'get', 'post', 'patch',
+    # }
+
+class AttendeeViewSet(viewsets.ModelViewSet):
+    queryset = Attendee.objects.all()
+    serializer_class = AttendeeViewSerializer
+    permission_classes = [
+        IsAuthenticated, IsAdminOrClientOrReadOnly
+    ]
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return EventAttendeeCreateSerializer
+          
+        return AttendeeViewSerializer
+    
+def create(self, request, *args, **kwargs):
+    serializer = self.get_serializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    attendees = serializer.save(client=request.user)
+
+    return Response({
+        'attendees': AttendeeCreateSerializer(attendees, many=True).data,
+    }, status=status.HTTP_201_CREATED)
+    
+class InvoiceViewSet(viewsets.ModelViewSet):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    permission_classes = [IsAuthenticated]    
+
+    def perform_create(self, serializer):
+        attendee = self.request.user  
+        event = serializer.validated_data['event']
+        ticket = serializer.validated_data['ticket']
+        
+        amount = ticket.price
+        due_date = timezone.now() + timezone.timedelta(days=7)  
+        
+        serializer.save(attendee=attendee, amount_due=amount, due_date=due_date)
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        invoice = serializer.validated_data['invoice']
+        amount_paid = serializer.validated_data['amount_paid']
+
+        if amount_paid != invoice.amount_due:
+            raise serializers.ValidationError("Payment amount does not match the invoice amount.")
+        
+        invoice.is_paid = True
+        invoice.save()
+
+        serializer.save()
