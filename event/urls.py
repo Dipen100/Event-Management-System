@@ -6,19 +6,20 @@ router = routers.SimpleRouter()
 
 router.register('events', EventViewSet)
 router.register('categories', EventCategoryViewSet)
-router.register('vendor', VendorViewSet, basename='vendor')
-router.register('event_logistic', EventLogisticViewSet, basename='event_logistic')
-router.register('catering', CateringViewSet, basename='catering')
+router.register('vendors', VendorViewSet, basename='vendor')
+router.register('event_logistics', EventLogisticViewSet, basename='event_logistic')
+router.register('caterings', CateringViewSet, basename='catering')
 router.register('equipments', EquipmentsViewSet, basename='equipments')
 
 router.register('attendees', AttendeeViewSet)
 router.register('communications', CommunicationViewSet)
-router.register('ticketing', TicketViewSet)
+router.register('ticketings', TicketViewSet)
 router.register('reservations', ReservationViewSet)
 router.register('invoices', InvoiceViewSet)
-router.register('payment', PaymentViewSet)
-# router.register('review', ReviewViewset, basename='review')
+router.register('receipts', PaymentViewSet, basename='receipt')
+router.register('reviews', ReviewViewSet, basename='review')
+router.register('reports', ReportViewSet, basename='reports')
 
 urlpatterns = [
-    
+
 ]+router.urls

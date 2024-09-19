@@ -2,14 +2,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets, filters
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.utils.timezone import now 
+from django.db import transaction
+from rest_framework.decorators import action
+from django.core.mail import send_mail
+from django.conf import settings
+   
 from .models import *
 from .serializers import *
-from django.utils.timezone import now 
-import uuid
-
-from rest_framework.permissions import IsAuthenticated
 from user.permissions import *
-from rest_framework.views import APIView
 
 class EventCategoryViewSet(viewsets.ModelViewSet):
     queryset = EventCategory.objects.all()
@@ -25,7 +27,7 @@ class EventViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'location', 'description']
     ordering_fields = ['date', 'title']
     permission_classes = [
-        IsAuthenticated ,IsAdminOrEventPlannerOrReadOnly
+        IsAuthenticated ,IsAdminOrEventPlannerOrReadOnly, IsAdminOrVendorOrReadOnly
     ]
     
     def get_serializer_class(self):
@@ -48,7 +50,11 @@ class VendorViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated, IsAdminOrVendorOrReadOnly
     ]
-
+    
+    def get_queryset(self):
+        a = self.request.user
+        return Vendor.objects.filter(user=a)
+    
 class CateringViewSet(viewsets.ModelViewSet):
     queryset = Catering.objects.all()
     serializer_class = CateringSerializer
@@ -57,6 +63,10 @@ class CateringViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated, IsAdminOrEventPlannerOrReadOnly
     ]
+    
+    def get_queryset(self):
+        a = self.request.user
+        return Catering.objects.filter(user=a)
 
 class EventLogisticViewSet(viewsets.ModelViewSet):
     queryset = EventLogistics.objects.all()
@@ -65,9 +75,16 @@ class EventLogisticViewSet(viewsets.ModelViewSet):
         IsAuthenticated, IsAdminOrEventPlannerOrReadOnly
     ]
     
+    def get_queryset(self):
+        a = self.request.user
+        return EventLogistics.objects.filter(user=a)
+    
     def get_serializer_class(self):
         method = self.request.method
         if method == 'PUT':
+            return UpdateEventLogisticSerializer
+        
+        if method == 'PATCH':
             return UpdateEventLogisticSerializer
         
         if method == 'POST':
@@ -97,7 +114,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         return ReservedEventViewSerializer
     
     http_method_names={
-        'get', 'post', 'patch',
+        'get', 'post',
     }
     
 class CommunicationViewSet(viewsets.ModelViewSet):
@@ -106,10 +123,14 @@ class CommunicationViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
+    
+    http_method_names={
+        'get', 'post',
+    }
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
-    # serializer_class = TicketViewSerializer
+    serializer_class = TicketViewSerializer
     permission_classes = [
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
@@ -132,49 +153,210 @@ class AttendeeViewSet(viewsets.ModelViewSet):
         IsAuthenticated, IsAdminOrClientOrReadOnly
     ]
     
+    def get_queryset(self):
+        a = self.request.user
+        return Attendee.objects.filter(user=a)
+    
     def get_serializer_class(self):
         if self.action == 'create':
             return EventAttendeeCreateSerializer
+        
+        if self.action == 'update':
+            return AttendeeUpdateSerializer
+        
+        if self.action == 'partial_update':
+            return AttendeeUpdateSerializer
           
         return AttendeeViewSerializer
     
-def create(self, request, *args, **kwargs):
-    serializer = self.get_serializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    attendees = serializer.save(client=request.user)
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        attendees = serializer.save(client=request.user)
 
-    return Response({
-        'attendees': AttendeeCreateSerializer(attendees, many=True).data,
-    }, status=status.HTTP_201_CREATED)
+        return Response({
+            'attendees': AttendeeCreateSerializer(attendees, many=True).data,
+        }, status=status.HTTP_201_CREATED)
     
 class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
-    permission_classes = [IsAuthenticated]    
+    permission_classes = [
+        IsAuthenticated, IsAdminOrClientOrReadOnly
+    ]    
 
+    @transaction.atomic
     def perform_create(self, serializer):
-        attendee = self.request.user  
-        event = serializer.validated_data['event']
-        ticket = serializer.validated_data['ticket']
+        serializer.save()
+    
+    @transaction.atomic    
+    def create(self, request, *args, **kwargs):
+        attendee_id = request.data.get('attendee')
+        ticket_id = request.data.get('ticket')
+
+        if Invoice.objects.filter(attendee_id=attendee_id, ticket_id=ticket_id).exists():
+            return Response({
+                "error": "Invoice with this attendee and ticket already exists."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().create(request, *args, **kwargs)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return InvoiceSerializer
         
-        amount = ticket.price
-        due_date = timezone.now() + timezone.timedelta(days=7)  
-        
-        serializer.save(attendee=attendee, amount_due=amount, due_date=due_date)
+        return InvoiceViewSerializer
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated, IsAdminOrClientOrReadOnly
+    ]
 
-    def perform_create(self, serializer):
-        invoice = serializer.validated_data['invoice']
-        amount_paid = serializer.validated_data['amount_paid']
-
-        if amount_paid != invoice.amount_due:
-            raise serializers.ValidationError("Payment amount does not match the invoice amount.")
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         
-        invoice.is_paid = True
-        invoice.save()
+        amount_paid = serializer.validated_data['amount_paid']
+        invoice = serializer.validated_data['invoice']
+        
+        if amount_paid != invoice.amount:
+            raise serializers.ValidationError({
+                "error":"Payment amount does not match the invoice amount."
+            })
+        
+        payment = serializer.save(
+        )
 
-        serializer.save()
+        attendee_email = payment.attendee.email
+        # raise Exception(attendee_email)
+        
+        payment.invoice.is_paid = True
+        payment.invoice.save()
+        
+        send_mail(
+            subject='Payment Confirmation',
+            message=f'You have successfully paid Rs. {amount_paid}',
+            from_email='mindrisers@gmail.com',
+            recipient_list=[
+                attendee_email
+            ]
+        )
+        # payment.invoice.delete()
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return PaymentSerializer
+        
+        return PaymentViewSerializer
+    
+    http_method_names={
+        'get', 'post'
+    }
+    
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [
+        IsAuthenticated, IsAdminOrClientOrReadOnly
+    ]
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        user = self.request.user
+        attendee_id = self.request.data.get('attendee')
+        
+        try:
+            attendee = Attendee.objects.get(id=attendee_id, client=user)
+            # raise Exception(attendee)
+            
+        except Attendee.DoesNotExist:
+            raise serializers.ValidationError("Attendee not found for the current user.")
+        
+        serializer.save(attendee=attendee)
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ReviewSerializer
+        
+        return ReviewViewSerializer
+    
+    http_method_names = {
+        'get', 'post'
+    }
+ 
+class ReportViewSet(viewsets.ViewSet):    
+    @action(detail=False, methods=['get'], url_path='attendance-report')
+    def attendance_report(self, request):
+        report = self.generate_attendance_report()
+        return Response(report)
+
+    @action(detail=False, methods=['get'], url_path='revenue-report')
+    def revenue_report(self, request):
+        report = self.generate_revenue_report()
+        return Response(report)
+
+    @action(detail=False, methods=['get'], url_path='vendor-performance-report')
+    def vendor_performance_report(self, request):
+        report = self.generate_vendor_performance_report()
+        return Response(report)
+
+    def generate_attendance_report(self):
+        report = []
+        total_event_attendees = 0
+        events = Event.objects.all()
+        for event in events:
+            attendees = Attendee.objects.filter(event=event).count()
+            total_event_attendees += attendees
+
+            report.append({
+                'event': event.title,
+                'date': event.date,
+                'attendees': attendees,
+            })
+            
+        report.append({
+            'total_event_attendees': total_event_attendees
+        })
+        
+        return report
+
+    def generate_revenue_report(self):
+        report = []
+        total_event_revenue = 0  
+        
+        events = Event.objects.all()
+        for event in events:
+            revenue = Payment.objects.filter(invoice__ticket__event=event).aggregate(
+                total=models.Sum('amount_paid')
+            )['total'] or 0  
+            
+            total_event_revenue += revenue
+
+            report.append({
+                'event': event.title,
+                'date': event.date,
+                'revenue': revenue,
+            })
+
+        report.append({
+            'total_event_revenue': total_event_revenue
+        })
+
+        return report
+
+    def generate_vendor_performance_report(self):
+        report = []
+        vendors = Vendor.objects.all()
+        for vendor in vendors:
+            associated_events = vendor.event_set.count()
+            report.append({
+                'vendor': vendor.name,
+                'associated_events': associated_events,
+            })
+        return report
