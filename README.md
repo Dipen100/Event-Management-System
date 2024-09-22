@@ -5,9 +5,9 @@
 - [Key Features](#key-features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Screenshots](#screenshots)
+- [Screenshots](#-screenshots)
 - [Contributing](#contributing)
-- [Contact](#contact)
+- [Contact](#-contact)
 
 ### Key Features
 
@@ -54,23 +54,15 @@ pip3 install -r requirements.txt
 python3 manage.py runserver
 ```
 ### 🎨 Screenshots
-<div style="display: flex; justify-content: space-between;">
-
-  <div style="text-align: center;">
-    <img src="images/screenshot1.png" alt="Screenshot 1" width="200"/>
-    <p>Home Page</p>
-  </div>
-
-  <div style="text-align: center;">
-    <img src="images/screenshot2.png" alt="Screenshot 2" width="200"/>
-    <p>Recipe Creation</p>
-  </div>
-
-  <div style="text-align: center;">
-    <img src="images/screenshot3.png" alt="Screenshot 3" width="200"/>
-    <p>Recipe List</p>
-  </div>
-
+<div style="display: flex; justify-content: space-around;">
+  <img src="Screenshots/home.png" alt="Home Page" width="500" height="300"/>
+  <img src="Screenshots/user_types.png" alt="User Types View" width="500" height="300"/>
+  <img src="Screenshots/event.png" alt="Event Image" width="333" height="300"/>
+  <img src="Screenshots/attendees.png" alt="Attendee Image" width="333" height="300"/>
+  <img src="Screenshots/reservation.png" alt="Reservation Image" width="333" height="300"/>
+  <img src="Screenshots/ticket.png" alt="Ticketing Image" width="333" height="300"/>
+  <img src="Screenshots/receipt.png" alt="Receipt Image" width="333" height="300"/>
+  <img src="Screenshots/total_attendee.png" alt="Total Attendee Image" width="333" height="300"/>
 </div>
 
 ### Contributing
