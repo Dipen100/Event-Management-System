@@ -57,12 +57,12 @@ python3 manage.py runserver
 <div style="display: flex; justify-content: space-around;">
   <img src="Screenshots/home.png" alt="Home Page" width="400" height="300"/>
   <img src="Screenshots/user_types.png" alt="User Types View" width="400" height="300"/>
-  <img src="Screenshots/event.png" alt="Event Image" width="300" height="300"/>
-  <img src="Screenshots/attendees.png" alt="Attendee Image" width="300" height="300"/>
-  <img src="Screenshots/reservation.png" alt="Reservation Image" width="300" height="300"/>
-  <img src="Screenshots/ticket.png" alt="Ticketing Image" width="300" height="300"/>
-  <img src="Screenshots/receipt.png" alt="Receipt Image" width="300" height="300"/>
-  <img src="Screenshots/total_attendee.png" alt="Total Attendee Image" width="300" height="300"/>
+  <img src="Screenshots/event.png" alt="Event Image" width="266.666" height="300"/>
+  <img src="Screenshots/attendees.png" alt="Attendee Image" width="266.666" height="300"/>
+  <img src="Screenshots/reservation.png" alt="Reservation Image" width="266.666" height="300"/>
+  <img src="Screenshots/ticket.png" alt="Ticketing Image" width="266.666" height="300"/>
+  <img src="Screenshots/receipt.png" alt="Receipt Image" width="266.666" height="300"/>
+  <img src="Screenshots/total_attendee.png" alt="Total Attendee Image" width="266.666" height="300"/>
 </div>
 
 ### Contributing
