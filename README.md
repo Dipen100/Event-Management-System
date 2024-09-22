@@ -5,9 +5,9 @@
 - [Key Features](#key-features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Screenshots](#screenshots)
+- [Screenshots](#-screenshots)
 - [Contributing](#contributing)
-- [Contact](#contact)
+- [Contact](#-contact)
 
 ### Key Features
 
