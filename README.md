@@ -30,11 +30,11 @@
 To install this project, follow the steps below:
 1. Clone the repository
 ```
-git clone https://github.com/Dipen100/Mindrisers_Project.git
+git clone https://github.com/Dipen100/Event-Management-System.git
 ```
 2. Navigate to the project directory
 ```
-cd Mindrisers_Project
+cd Event-Management-System
 ```
 
 ### 🛠️ Usage
