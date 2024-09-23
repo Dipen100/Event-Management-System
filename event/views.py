@@ -52,8 +52,11 @@ class VendorViewSet(viewsets.ModelViewSet):
     ]
     
     def get_queryset(self):
-        a = self.request.user
-        return Vendor.objects.filter(user=a)
+        user = self.request.user
+        if user.is_anonymous:
+            return Vendor.objects.none()
+        
+        return Vendor.objects.filter(user=user)
     
 class CateringViewSet(viewsets.ModelViewSet):
     queryset = Catering.objects.all()
@@ -65,8 +68,11 @@ class CateringViewSet(viewsets.ModelViewSet):
     ]
     
     def get_queryset(self):
-        a = self.request.user
-        return Catering.objects.filter(user=a)
+        user = self.request.user
+        if user.is_anonymous:
+            return Catering.objects.none()
+        
+        return Catering.objects.filter(user=user)
 
 class EventLogisticViewSet(viewsets.ModelViewSet):
     queryset = EventLogistics.objects.all()
@@ -76,8 +82,8 @@ class EventLogisticViewSet(viewsets.ModelViewSet):
     ]
     
     def get_queryset(self):
-        a = self.request.user
-        return EventLogistics.objects.filter(user=a)
+        user = self.request.user
+        return EventLogistics.objects.filter(user=user)
     
     def get_serializer_class(self):
         method = self.request.method
@@ -154,8 +160,8 @@ class AttendeeViewSet(viewsets.ModelViewSet):
     ]
     
     def get_queryset(self):
-        a = self.request.user
-        return Attendee.objects.filter(user=a)
+        user = self.request.user
+        return Attendee.objects.filter(user=user)
     
     def get_serializer_class(self):
         if self.action == 'create':

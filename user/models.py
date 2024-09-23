@@ -9,6 +9,7 @@ class User(AbstractUser):
         ('VENDOR', 'Vendor'),
         ('CLIENT', 'Client'),
     )
+    otp = models.CharField(max_length=255, null=True, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ADMIN')
 
     def __str__(self):

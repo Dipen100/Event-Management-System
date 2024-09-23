@@ -174,6 +174,7 @@ class Ticket(models.Model):
     
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE,  null=True, blank=True)
     attendee = models.ForeignKey(Attendee, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, related_name='tickets', on_delete=models.CASCADE)
     ticket_type = models.CharField(max_length=10, choices=TICKET_TYPE_CHOICES, default=GENERAL)
     ticket_number = models.CharField(max_length=100, unique=True)
     ticket_quantity = models.PositiveIntegerField(default=1)
