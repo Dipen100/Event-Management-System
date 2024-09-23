@@ -60,6 +60,7 @@ pip3 install -r requirements.txt
 python3 manage.py runserver
 ```
 ### 🎨 Screenshots
+Screenshots are of homepage, types of user, event, attendees, reservations, ticketing, receipt and total attendees attended in events respectively.
 <div style="display: flex; justify-content: space-around;">
   <img src="Screenshots/home.png" alt="Home Page" width="400" height="300"/>
   <img src="Screenshots/user_types.png" alt="User Types View" width="400" height="300"/>
