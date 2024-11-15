@@ -22,16 +22,8 @@ class AttendeeMinimalSerializer(serializers.ModelSerializer):
         ] 
 
 #? Used in REservation, Attendee
-class EventMinimalSerializer1(serializers.ModelSerializer):
-    class Meta:
-        model = Event
-        fields = [
-            'title',
-            'event_price'
-        ]  
-
 class AttendeeMinimalSerializer1(serializers.ModelSerializer):
-    event = EventMinimalSerializer1(read_only=True)  
+    event = EventMinimalSerializer(read_only=True)  
 
     class Meta:
         model = Attendee
@@ -249,12 +241,11 @@ class EventLogisticViewSerializer(serializers.ModelSerializer):
             'transportation_fee',
             'total_expenses'
         ]
-#? EventLogistics Part End Here
 
 #? Attendee Part Starts
 class AttendeeViewSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault()) 
-    event = EventMinimalSerializer1(read_only=True) 
+    event = EventMinimalSerializer(read_only=True) 
     class Meta:
         model = Attendee
         fields = [
@@ -269,6 +260,7 @@ class AttendeeViewSerializer(serializers.ModelSerializer):
             'registered_at',
             'message'
         ]
+        
 class AttendeeCreateSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault()) 
     class Meta:
@@ -314,7 +306,7 @@ class EventAttendeeCreateSerializer(serializers.Serializer):
 
         event = Event.objects.get(id=event_id)
         attendee_list = []
-
+        
         for attendee_data in attendees_data:
             attendee_data.pop('event', None)
             attendee = Attendee.objects.create(

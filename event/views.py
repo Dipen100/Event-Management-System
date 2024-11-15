@@ -24,7 +24,7 @@ class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'location', 'description']
+    search_fields = ['title', 'location']
     ordering_fields = ['date', 'title']
     permission_classes = [
         IsAuthenticated ,IsAdminOrEventPlannerOrReadOnly, IsAdminOrVendorOrReadOnly
