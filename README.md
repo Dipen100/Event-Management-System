@@ -91,6 +91,6 @@ git push origin (branch-name)
 ## 💬 Contact
 If any queries, please reach out:
   - Name: Dipendra Thapa Chhetri
-  - Email: dipenthapachhetri@gmail.com
+  - Email: dipenthapachhetri10@gmail.com
   - GitHub: https://github.com/Dipen100
 
